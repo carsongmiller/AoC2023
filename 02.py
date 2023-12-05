@@ -39,7 +39,33 @@ def part1(lines):
 	return sum	
 
 def part2(lines):
-	return
+	limitR = 12
+	limitG = 13
+	limitB = 14
+	gameIndex = 0
+	sum = 0
+
+	for game in lines:
+		game = game.strip()
+		gameID = int(game[5:game.find(":")])
+		minQuant = {
+			"red":0,
+			"green":0,
+			"blue":0
+		}
+
+		trials = game[game.find(": ") + 2:len(game)].split("; ")
+
+		for trial in trials:
+			possible = True
+			colors = trial.split(", ")
+
+			for item in colors:
+				quant, color = item.split(" ")
+				minQuant[color] = max(int(quant), minQuant[color])
+		
+		sum += minQuant["red"] * minQuant["green"] * minQuant["blue"]
+	return sum
 
 
 start = timer()
