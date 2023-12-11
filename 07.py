@@ -54,7 +54,7 @@ def part2(lines):
 
 	return winnings
 
-def cardValue(card):
+def cardValue_Part1(card):
 	if card.isnumeric():
 		return int(card)
 	elif card == 'A':
@@ -65,6 +65,20 @@ def cardValue(card):
 		return 12
 	elif card == 'J':
 		return 11
+	elif card == 'T':
+		return 10
+	
+def cardValue_Part2(card):
+	if card.isnumeric():
+		return int(card)
+	elif card == 'A':
+		return 14
+	elif card == 'K':
+		return 13
+	elif card == 'Q':
+		return 12
+	elif card == 'J':
+		return 1
 	elif card == 'T':
 		return 10
 	
@@ -104,11 +118,19 @@ class HandTypes(Enum):
 	fourOfAKind = 5
 	fiveOfAKind = 6
 
-def compareHandsCardwise(handA, handB):
+def compareHandsCardwise_Part1(handA, handB):
 	for i in range(len(handA)):
-		if cardValue(handA[i]) > cardValue(handB[i]):
+		if cardValue_Part1(handA[i]) > cardValue_Part1(handB[i]):
 			return -1
-		elif cardValue(handA[i]) < cardValue(handB[i]):
+		elif cardValue_Part1(handA[i]) < cardValue_Part1(handB[i]):
+			return 1
+	return 0
+
+def compareHandsCardwise_Part2(handA, handB):
+	for i in range(len(handA)):
+		if cardValue_Part2(handA[i]) > cardValue_Part2(handB[i]):
+			return -1
+		elif cardValue_Part2(handA[i]) < cardValue_Part2(handB[i]):
 			return 1
 	return 0
 
@@ -120,7 +142,7 @@ def compareHands_Part1(handA, handB):
 	elif classA.value < classB.value:
 		return 1
 	else:
-		return compareHandsCardwise(handA, handB)
+		return compareHandsCardwise_Part1(handA, handB)
 	
 def compareHands_Part2(handA, handB):
 	if handA in replacementHands.keys():
@@ -138,7 +160,7 @@ def compareHands_Part2(handA, handB):
 	elif classA.value < classB.value:
 		return 1
 	else:
-		return compareHandsCardwise(handA, handB)
+		return compareHandsCardwise_Part2(handA, handB)
 
 def generateHandCandidates(hand, cardCandidates):
 	handCandidates = []
