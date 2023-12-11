@@ -49,10 +49,13 @@ def part2(lines):
 
 	for i in range(len(sections) - 1):
 		maps.append(createMap(sections[i + 1].split('\n')))
-		transformedSets.append([traceThroughMap_Range(transformedSets[-1], maps[-1])])
+		transformedSets.append(traceThroughMap_Range(transformedSets[-1], maps[-1]))
 
 
-	return
+	s = [x[0] for x in transformedSets[-1]]
+	m = min(s)
+
+	return m
 
 
 def createMap(rawMapData):
@@ -74,49 +77,57 @@ def traceThroughMap_Single(source, map):
 	return source
 
 def traceThroughMap_Range(sourceSets, map):
-	destSet = []
-	for set in sourceSets:
-		sourceStart = set[0]
-		sourceRange = set[1]
+	mappedSets = []
 
-		for entry in map:
-			mapSourceStart = entry[1]
-			mapDestStart = entry[0]
-			mapRange = entry[2]
+	for sourceSet in sourceSets:
+		setsInProcess = [sourceSet]
 
-			# source range does not overlap with map at all
-			if (sourceStart + sourceRange <= mapSourceStart) or (sourceStart >= mapSourceStart + mapRange):
-				destSet.append([sourceStart, sourceRange])
+		while setsInProcess:
+			currentSource = setsInProcess.pop()
+			sourceStart = currentSource[0]
+			sourceRange = currentSource[1]
+			sourceEnd = sourceStart + sourceRange - 1
+
+			mapped = False
+
+			for mapSection in map:
+				# for each map, check if the source overlaps with it at all
+				mapSourceStart = mapSection[1]
+				mapDestStart = mapSection[0]
+				mapRange = mapSection[2]
+				mapSourceEnd = mapSourceStart + mapRange - 1
+				
+				if not (sourceEnd < mapSourceStart or sourceStart > mapSourceEnd):
+					# we've got some mapping to do
+					mapped = True
+					
+					if sourceStart < mapSourceStart:
+						# the unmapped chunk of the source range which lies before the map
+						setsInProcess.append([sourceStart, mapSourceStart - sourceStart])
+					if sourceEnd > mapSourceEnd:
+						# the unmapped chunk of the source range which lies after the map
+						setsInProcess.append([mapSourceEnd + 1, sourceEnd - mapSourceEnd])
+					
+					if sourceStart >= mapSourceStart and sourceEnd <= mapSourceEnd:
+						# the source range lies completely within the map
+						mappedSets.append([mapDestStart + (sourceStart - mapSourceStart), sourceRange])
+					
+					elif sourceStart < mapSourceStart and sourceEnd > mapSourceEnd:
+						# the source lies completely AROUND the map (the whole map range must be added)
+						mappedSets.append([mapDestStart, mapRange])
+
+					elif sourceEnd <= mapSourceEnd:
+						# the source starts before the map, and ends before or right with it
+						mappedSets.append([mapDestStart, sourceEnd - mapSourceStart])
+					
+					elif sourceStart >= mapSourceStart:
+						# the source starts within the map, and ends after it
+						mappedSets.append([mapDestStart + (sourceStart - mapSourceStart), mapSourceEnd - sourceStart])
 			
-			#source and map perfectly align
-			elif (sourceStart == mapSourceStart) and (sourceRange == mapRange):
-				destSet.append([mapDestStart, mapRange])
-
-			# source completely surrounds map
-			elif (sourceStart <= mapSourceStart) and (sourceStart + sourceRange >= mapSourceStart + mapRange):
-				destSet.append([sourceStart, mapSourceStart - sourceStart])
-				destSet.append([mapDestStart, mapRange])
-				destSet.append([mapSourceStart + mapRange, sourceRange - mapRange - (mapSourceStart - sourceStart)])
-
-			# source overlaps only on the low side of the map
-			elif (sourceStart < mapSourceStart) and (sourceStart + sourceRange < mapSourceStart + mapRange):
-				destSet.append([sourceStart, mapSourceStart - sourceStart])
-				destSet.append([mapDestStart, sourceRange - (mapSourceStart - sourceStart)])
-
-			# source overlaps only on the high side of the map
-			elif (sourceStart >= mapSourceStart) and (sourceStart + sourceRange > mapSourceStart + mapRange):
-				destSet.append([mapDestStart + (sourceStart - mapSourceStart), mapRange - (sourceStart - mapSourceStart)])
-				destSet.append([mapSourceStart + mapRange, sourceRange - (mapRange - (sourceStart - mapSourceStart))])
-
-			# source lies completely within the map
-			elif (sourceStart >= mapSourceStart) and (sourceStart + sourceRange <= mapSourceStart + mapRange):
-				destSet.append([mapDestStart + (sourceStart - mapSourceStart), sourceRange])
+			if not mapped:
+				mappedSets.append([sourceStart, sourceRange])
 			
-			else:
-				print("Shouldn't be here")
-			
-
-	return destSet
+	return mappedSets
 
 
 
